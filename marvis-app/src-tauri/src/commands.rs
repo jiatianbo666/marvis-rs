@@ -20,8 +20,12 @@ use std::sync::Arc;
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
 
-const DEEPSEEK_KEY: &str = "sk-f81b53fef0df437f9b9a1021d2d92471";
 const DEEPSEEK_MODEL: &str = "deepseek-v4-pro";
+
+fn get_deepseek_key() -> String {
+    std::env::var("DEEPSEEK_API_KEY")
+        .unwrap_or_else(|_| String::new())
+}
 
 // ============ 共享状态 ============
 
@@ -257,7 +261,7 @@ pub async fn get_task_status(state: State<'_, SharedTask>) -> Result<TaskStatus,
 // ============ 核心：手工 Agent Loop（逐步更新 agent 状态）============
 
 async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result<(String, u64), String> {
-    let client = DeepSeekClient::new(DEEPSEEK_KEY, DEEPSEEK_MODEL);
+    let client = DeepSeekClient::new(get_deepseek_key(), DEEPSEEK_MODEL);
     let tool_registry = build_registry();
 
     let system = format!(
