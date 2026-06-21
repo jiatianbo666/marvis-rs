@@ -1,0 +1,29 @@
+{
+  "productName": "Marvis Office",
+  "version": "0.1.0",
+  "identifier": "com.marvis.office",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Marvis Office - AI Agent Team",
+        "width": 1200,
+        "height": 720,
+        "minWidth": 900,
+        "minHeight": 500,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false
+  }
+}

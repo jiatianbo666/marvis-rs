@@ -1,0 +1,29 @@
+[package]
+name = "marvis-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "marvis"
+path = "src/main.rs"
+
+[dependencies]
+marvis-core.workspace = true
+marvis-ai.workspace = true
+marvis-tools.workspace = true
+marvis-agent.workspace = true
+marvis-session.workspace = true
+marvis-security.workspace = true
+clap.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+config.workspace = true
+log.workspace = true
+env_logger.workspace = true
+crossterm.workspace = true
+ratatui.workspace = true
+chrono.workspace = true

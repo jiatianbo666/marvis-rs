@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebSearch",
+      "WebFetch(domain:deepwiki.com)",
+      "Bash(curl -sL --connect-timeout 10 \"https://raw.githubusercontent.com/Drok1015/marvis-office/main/README.md\")",
+      "Bash(curl *)",
+      "Bash(cargo check *)",
+      "Bash(cargo fmt *)",
+      "Bash(cargo clippy *)",
+      "Bash(cargo test *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(npx tauri *)"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+[package]
+name = "marvis-agent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+marvis-core.workspace = true
+marvis-ai.workspace = true
+marvis-tools.workspace = true
+marvis-session.workspace = true
+marvis-security.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+async-trait.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+log.workspace = true

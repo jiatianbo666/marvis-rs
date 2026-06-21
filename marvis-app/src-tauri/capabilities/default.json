@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicegui/tauri-apps/main/cli/schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for Marvis Office",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-emit",
+    "core:event:allow-listen",
+    "shell:allow-open"
+  ]
+}

@@ -1,0 +1,30 @@
+[package]
+name = "marvis-tauri"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "marvis_tauri_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+log = "0.4"
+env_logger = "0.11"
+async-trait = "0.1"
+
+# Our existing crates
+marvis-core = { path = "../../crates/marvis-core" }
+marvis-ai = { path = "../../crates/marvis-ai" }
+marvis-tools = { path = "../../crates/marvis-tools" }
+marvis-agent = { path = "../../crates/marvis-agent" }
+marvis-session = { path = "../../crates/marvis-session" }
+marvis-security = { path = "../../crates/marvis-security" }

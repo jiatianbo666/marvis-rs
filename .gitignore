@@ -1,0 +1,32 @@
+# Build output
+/target/
+/target2/
+
+# Dependencies
+node_modules/
+
+# Frontend build
+/marvis-app/dist/
+
+# Environment files (contains API keys!)
+.env
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Session data
+.marvis/
+
+# Reference code (not part of this project)
+/reference-code/

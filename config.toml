@@ -1,0 +1,29 @@
+# Marvis default configuration
+
+[ai]
+provider = "deepseek"  # deepseek | qwen | mock
+model = "deepseek-v4-pro"
+
+[ai.deepseek]
+api_key = "${DEEPSEEK_API_KEY}"
+base_url = "https://api.deepseek.com/v1"
+
+[ai.qwen]
+api_key = "${QWEN_API_KEY}"
+model = "Qwen/Qwen3.5-35B-A3B"
+base_url = "https://api.siliconflow.cn/v1/chat/completions"
+
+[security]
+permission_mode = "normal"  # readonly | normal | dangerous
+max_iterations = 10
+require_confirmation_for_dangerous = true
+
+[session]
+max_history_tokens = 8000
+save_on_exit = true
+storage_dir = ".marvis/sessions"
+
+[ui]
+streaming = true
+color = true
+show_tool_calls = true
