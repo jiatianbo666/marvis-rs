@@ -1,6 +1,6 @@
 # 🦀 Marvis Office — AI Agent Desktop App
 
-> **My AI Virtual Intelligent System** — 用 Rust 构建的桌面 AI 助手，多 Agent 协作，真实操控你的电脑。
+> **Marvis rewritten in Rust** — 6 个 AI Agent 组成的虚拟办公室，真实操控你的电脑。
 
 <p align="center">
   <img src="https://img.shields.io/badge/Rust-1.96+-orange?logo=rust" alt="Rust">
@@ -10,11 +10,26 @@
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
 </p>
 
-## 项目愿景
+## ✨ 核心特色
 
-Marvis Office 是一个**真实可用的 AI 桌面应用**。你输入自然语言任务，AI 分析需求、调度多
-个专业 Agent 协作、调用系统工具实际执行——打开浏览器、读取文件、查看进程、搜索网页等。
-核心理念：**让 AI 真正长出手脚**，安全地操控电脑。
+### 🏢 创新的"AI 办公室"可视化
+
+这是 Marvis 最独特的设计。它把幕后黑盒般的 AI 执行过程，变成了一个**看得见、摸得着的虚拟办公室**。
+
+内置了一个由 **6 个 AI Agent** 组成的"虚拟团队"，各司其职，并行工作，就像一个高效的"数字部门"在为你服务：
+
+- 🐻 **Cute Bear**（PM / 调度者）— 分析任务、分配工作、汇总结果
+- 🦒 **Giraffe**（文件专家）— 扫描文件、读写操作
+- 🦙 **Llama**（系统监控）— CPU、内存、进程管理
+- 🐰 **Rabbit**（应用管理）— 执行命令、剪贴板、系统操作
+- 🐶 **Doggie**（浏览器）— 打开网页、搜索、抓取内容
+- 🐷 **Pig**（搜索策略）— 关键词提取、搜索规划
+
+每个 Agent 都有自己的**工位**和**人设**，通过 Lottie 动画生动呈现。没任务时，它们会 😴 打盹、☕ 喝咖啡、🏋️ 健身；接到任务后，你会实时看到谁在负责、谁在"摸鱼"。这种设计将 **AI 执行过程完全透明化**，极大缓解了用户对 AI"黑箱"的不信任感，让 AI 从神秘工具变成了**可管理的"数字劳动力"**。
+
+### 🔧 真实操控电脑
+
+输入自然语言 → AI 分析 → 调度 Agent → **真实执行系统工具**。不只是对话，是真的动手。
 
 ## 项目背景
 
@@ -183,12 +198,12 @@ const DEEPSEEK_MODEL: &str = "deepseek-v4-pro";
 
 | Agent | 角色 | 负责工具 |
 |-------|------|---------|
-| 🐼 **Panda PM** | 任务规划 & 协调 | AI 推理、任务分解、结果汇总 |
-| 🦊 **Fox File Ops** | 文件专家 | read_file, write_file, list_directory, delete_file, file_info |
-| 🐴 **Horse SysInfo** | 系统监控 | system_info, cpu_info, memory_info, list_processes, process_info |
-| 🐶 **Dog Browser** | 网络交互 | web_fetch, web_search, open_browser |
-| 🐷 **Pig Search** | 搜索策略 | web_search, 搜索词提取 |
-| 🐰 **Rabbit Apps** | 应用管理 | run_shell, read_clipboard, write_clipboard |
+| 🐻 **Cute Bear** | 任务规划 & 协调 | AI 推理、任务分解、结果汇总 |
+| 🦒 **Giraffe** | 文件专家 | read_file, write_file, list_directory, delete_file, file_info |
+| 🦙 **Llama** | 系统监控 | system_info, cpu_info, memory_info, list_processes, process_info |
+| 🐶 **Doggie** | 网络交互 | web_fetch, web_search, open_browser |
+| 🐷 **Pig** | 搜索策略 | web_search, 搜索词提取 |
+| 🐰 **Rabbit** | 应用管理 | run_shell, read_clipboard, write_clipboard |
 
 ## Rust 核心特性体现
 

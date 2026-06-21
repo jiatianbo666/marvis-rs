@@ -1,0 +1,14 @@
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\deps\thiserror-b4add8fc4c5a1ef5.d: C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\lib.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\aserror.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\display.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\var.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\private.rs C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\thiserror-1e50f1a1fd4b0211\out/private.rs
+
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\deps\libthiserror-b4add8fc4c5a1ef5.rlib: C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\lib.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\aserror.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\display.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\var.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\private.rs C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\thiserror-1e50f1a1fd4b0211\out/private.rs
+
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\deps\libthiserror-b4add8fc4c5a1ef5.rmeta: C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\lib.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\aserror.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\display.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\var.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\private.rs C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\thiserror-1e50f1a1fd4b0211\out/private.rs
+
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\lib.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\aserror.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\display.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\var.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.18\src\private.rs:
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\thiserror-1e50f1a1fd4b0211\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\86152\\Desktop\\rust-final\\target3\\x86_64-pc-windows-gnu\\release\\build\\thiserror-1e50f1a1fd4b0211\\out

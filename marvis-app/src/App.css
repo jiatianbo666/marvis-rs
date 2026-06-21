@@ -1,292 +1,132 @@
-.app-container {
+/* ====== Agent position transition (GLOBAL — must be here, not in component <style>) ====== */
+.pony-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: left 760ms cubic-bezier(0.21, 0.86, 0.35, 1),
+              top 760ms cubic-bezier(0.21, 0.86, 0.35, 1);
+  will-change: left, top;
+}
+
+/* ====== Agent animations ====== */
+.pony-avatar { display: flex; flex-direction: column; align-items: center; transform-origin: center bottom; pointer-events: auto; cursor: pointer; }
+.pet-emoji { border-radius: 50%; background: rgba(20,30,25,0.9); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: box-shadow 0.3s; }
+.avatar-label { font-size: 9px; color: #888; margin-top: 2px; white-space: nowrap; font-weight: 500; }
+.state-idle .pet-emoji         { animation: idleBounce 2.4s ease-in-out infinite; }
+.state-working .pet-emoji,
+.state-thinking .pet-emoji,
+.state-dispatching .pet-emoji  { animation: workingShake 0.4s linear infinite; box-shadow: 0 0 16px currentColor; }
+.state-done .pet-emoji         { animation: donePulse 0.9s ease-in-out infinite; box-shadow: 0 0 12px #22c55e; }
+.state-error .pet-emoji        { animation: errorWobble 0.5s linear infinite; box-shadow: 0 0 12px #ef4444; }
+.state-paused .pet-emoji       { animation: pausedFloat 1.3s ease-in-out infinite; box-shadow: 0 0 12px #f59e0b; }
+
+@keyframes idleBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+@keyframes workingShake { 0%,100%{transform:translateX(0)rotate(0)} 25%{transform:translateX(-2px)rotate(-2deg)} 75%{transform:translateX(2px)rotate(2deg)} }
+@keyframes donePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+@keyframes errorWobble { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+@keyframes pausedFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+/* ====== Active status indicator rings ====== */
+.active-ring, .done-ring, .error-ring {
+  position: absolute; top: -4px; left: -4px; right: -4px; bottom: 30px;
+  border-radius: 50%; pointer-events: none; z-index: 20;
+}
+.active-ring {
+  border: 3px solid #f59e0b;
+  animation: ringPulse 0.8s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(245,158,11,0.5), 0 0 30px rgba(245,158,11,0.2);
+}
+.done-ring {
+  border: 3px solid #22c55e;
+  box-shadow: 0 0 10px rgba(34,197,94,0.4);
+}
+.error-ring {
+  border: 3px solid #ef4444;
+  box-shadow: 0 0 10px rgba(239,68,68,0.4);
+}
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.7; }
+}
+
+/* Agent shadow */
+.agent-shadow {
+  background: radial-gradient(ellipse, rgba(0,0,0,0.25), transparent);
+  border-radius: 50%;
+  transition: width 760ms cubic-bezier(0.21,0.86,0.35,1),
+              height 760ms cubic-bezier(0.21,0.86,0.35,1);
+  margin-top: 2px;
+}
+.state-idle .agent-shadow { animation: shadowBreathe 2.4s ease-in-out infinite; }
+.state-working .agent-shadow,
+.state-thinking .agent-shadow,
+.state-dispatching .agent-shadow { animation: shadowShake 0.4s linear infinite; }
+.state-done .agent-shadow { animation: shadowPulse 0.9s ease-in-out infinite; }
+
+@keyframes shadowBreathe { 0%,100%{transform:scaleX(1);opacity:0.6} 50%{transform:scaleX(0.85);opacity:0.35} }
+@keyframes shadowShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-2px)} 75%{transform:translateX(2px)} }
+@keyframes shadowPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(0.85)} }
+
+/* ====== Public zones — keep labels from being covered ====== */
+.public-zone { z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 8px; gap: 2px; }
+.zone-label { font-size: 12px; font-weight: 700; color: #555; }
+.zone-count { font-size: 10px; color: #999; margin-top: auto; }
+.avatars-layer { z-index: 10; }
+.desk { z-index: 1; }
+.desk-label { position: relative; z-index: 2; }
+
+/* ====== Layout ====== */
+.app-layout {
   display: grid;
-  grid-template-columns: minmax(750px, 1fr) 400px;
-  height: 100vh;
-  width: 100vw;
+  grid-template-columns: minmax(680px, 1fr) 380px;
+  gap: 14px;
+  align-items: stretch;
+  height: clamp(700px, calc(100vh - 80px), 100vh);
+  padding: 16px;
 }
 
 .office-panel {
-  background: radial-gradient(ellipse at 50% 40%, #0a2a24 0%, #061713 70%);
-  position: relative;
+  border-radius: 20px;
   overflow: hidden;
-  border-right: 2px solid #1a3a30;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
 }
 
 .side-panel {
   background: linear-gradient(180deg, #0d1f1b 0%, #0a1814 100%);
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  gap: 10px;
-  overflow-y: auto;
-  border-left: 1px solid #1a3a30;
+  display: flex; flex-direction: column;
+  padding: 14px; gap: 10px; overflow-y: auto;
+  border-radius: 16px; border: 1px solid #1a3a30;
 }
 
-.app-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #c0e0d0;
-  text-align: center;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #1a3a30;
-  letter-spacing: 1px;
-}
+.app-title { font-size: 15px; font-weight: 700; color: #c0e0d0; text-align: center; padding-bottom: 8px; border-bottom: 1px solid #1a3a30; letter-spacing: 1px; }
 
-/* ===== RESPONSE BOX ===== */
-.response-box {
-  background: linear-gradient(135deg, #132832, #0d1f2a);
-  border: 1px solid #1a3a50;
-  border-radius: 10px;
-  padding: 12px;
-  animation: fadeIn 0.4s ease;
-}
+.task-input { width: 100%; padding: 10px; background: #132822; border: 1px solid #1e4034; border-radius: 8px; color: #e0e0e0; font-size: 13px; resize: vertical; font-family: inherit; }
+.task-input::placeholder { color: #5a7a6a; }
 
-.response-header {
-  font-size: 11px;
-  font-weight: 700;
-  color: #60a5fa;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #1a3040;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
+.button-row { display: flex; gap: 8px; }
+.btn-primary { flex: 1; padding: 9px 16px; background: linear-gradient(135deg,#4ade80,#22c55e); border: none; border-radius: 8px; font-size: 13px; font-weight: 600; color: #052e16; cursor: pointer; transition: all 0.2s; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { padding: 9px 14px; background: #1a3228; border: 1px solid #2a4a38; border-radius: 8px; color: #8ab89a; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+.btn-secondary:hover:not(:disabled) { background: #223f32; }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.response-content {
-  font-size: 13px;
-  line-height: 1.6;
-  color: #c8d8e0;
-  max-height: 220px;
-  overflow-y: auto;
-}
+.status-bar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #0d1f18; border-radius: 6px; font-size: 11px; color: #7a9a8a; }
+.conn-dot { width: 7px; height: 7px; border-radius: 50%; }
+.conn-dot.connected { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.stats-right { margin-left: auto; }
 
-.response-content div {
-  margin-bottom: 1px;
-}
+.response-box { background: linear-gradient(135deg,#132832,#0d1f2a); border: 1px solid #1a3a50; border-radius: 10px; padding: 10px; animation: fadeIn 0.4s ease; max-height: 200px; overflow-y: auto; }
+.response-header { font-size: 10px; font-weight: 700; color: #60a5fa; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #1a3040; text-transform: uppercase; letter-spacing: 1px; }
+.response-content { font-size: 12px; line-height: 1.5; color: #c8d8e0; }
+.response-content div { margin-bottom: 1px; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a4a3a; border-radius: 2px; }
 
-.task-input-area textarea {
-  width: 100%;
-  padding: 12px;
-  background: #132822;
-  border: 1px solid #1e4034;
-  border-radius: 8px;
-  color: #e0e0e0;
-  font-size: 14px;
-  resize: vertical;
-  font-family: inherit;
-}
-
-.task-input-area textarea::placeholder {
-  color: #5a7a6a;
-}
-
-.button-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.btn-primary {
-  flex: 1;
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #4ade80, #22c55e);
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #052e16;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  padding: 10px 16px;
-  background: #1a3228;
-  border: 1px solid #2a4a38;
-  border-radius: 8px;
-  color: #8ab89a;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #223f32;
-}
-
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #0d1f18;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #7a9a8a;
-}
-
-.conn-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.conn-dot.connected {
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
-}
-
-.conn-dot.disconnected {
-  background: #ef4444;
-  box-shadow: 0 0 6px #ef4444;
-}
-
-.stats-right {
-  margin-left: auto;
-}
-
-/* Confirmation */
-.confirm-box {
-  padding: 14px;
-  background: #2a2010;
-  border: 1px solid #8a7020;
-  border-radius: 8px;
-}
-
-.confirm-header {
-  font-size: 13px;
-  font-weight: 700;
-  color: #f0c040;
-  margin-bottom: 6px;
-}
-
-.confirm-agent {
-  font-size: 12px;
-  color: #a09060;
-  margin-bottom: 4px;
-}
-
-.confirm-action {
-  font-size: 13px;
-  color: #e0d080;
-  margin-bottom: 10px;
-}
-
-.confirm-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-approve, .btn-reject {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-approve {
-  background: #166534;
-  color: #86efac;
-}
-
-.btn-approve:hover {
-  background: #1a7a3a;
-}
-
-.btn-reject {
-  background: #7f1d1d;
-  color: #fca5a5;
-}
-
-.btn-reject:hover {
-  background: #991b1b;
-}
-
-/* Token Bar */
-.token-bar {
-  padding: 10px 12px;
-  background: #0d1f18;
-  border-radius: 6px;
-}
-
-.token-bar .label {
-  font-size: 12px;
-  color: #7a9a8a;
-  margin-bottom: 4px;
-}
-
-.token-progress {
-  height: 8px;
-  background: #1a3028;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 6px;
-}
-
-.token-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #6366f1);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.token-numbers {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #6a8a7a;
-}
-
-/* Task Log */
-.task-log {
-  flex: 1;
-  overflow-y: auto;
-  font-size: 12px;
-  color: #8a9a8a;
-  min-height: 0;
-}
-
-.task-log .entry {
-  padding: 5px 8px;
-  border-bottom: 1px solid #0d1f18;
-  word-break: break-word;
-}
-
-.task-log .entry:last-child {
-  border-bottom: none;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #2a4a3a;
-  border-radius: 3px;
+@media (max-width: 1100px) {
+  .app-layout { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .side-panel { max-height: 350px; }
 }

@@ -1,0 +1,14 @@
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\deps\serde-5485cd3da098e741.d: C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\serde-51efa6de78416c27\out/private.rs
+
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\deps\libserde-5485cd3da098e741.rlib: C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\serde-51efa6de78416c27\out/private.rs
+
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\deps\libserde-5485cd3da098e741.rmeta: C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\serde-51efa6de78416c27\out/private.rs
+
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\86152\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\serde-51efa6de78416c27\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\86152\\Desktop\\rust-final\\target3\\x86_64-pc-windows-gnu\\release\\build\\serde-51efa6de78416c27\\out

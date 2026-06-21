@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Default capabilities for Marvis Office","local":true,"windows":["main"],"permissions":["core:default","core:event:default","core:event:allow-emit","core:event:allow-listen","shell:allow-open"]}}

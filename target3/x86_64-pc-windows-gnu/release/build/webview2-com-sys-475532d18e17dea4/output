@@ -1,0 +1,2 @@
+cargo:rustc-link-search=native=C:\Users\86152\Desktop\rust-final\target3\x86_64-pc-windows-gnu\release\build\webview2-com-sys-475532d18e17dea4\out\x64
+cargo:rustc-link-lib=advapi32

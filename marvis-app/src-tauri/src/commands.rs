@@ -23,8 +23,25 @@ use tokio::sync::Mutex;
 const DEEPSEEK_MODEL: &str = "deepseek-v4-pro";
 
 fn get_deepseek_key() -> String {
-    std::env::var("DEEPSEEK_API_KEY")
-        .unwrap_or_else(|_| String::new())
+    // 1. Check env var
+    if let Ok(key) = std::env::var("DEEPSEEK_API_KEY") {
+        if !key.is_empty() && key != "your-deepseek-api-key" { return key; }
+    }
+    // 2. Check .env file next to exe
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            let env_path = dir.join(".env");
+            if let Ok(content) = std::fs::read_to_string(&env_path) {
+                for line in content.lines() {
+                    if let Some(val) = line.strip_prefix("DEEPSEEK_API_KEY=") {
+                        let val = val.trim().trim_matches('"').trim_matches('\'');
+                        if !val.is_empty() { return val.to_string(); }
+                    }
+                }
+            }
+        }
+    }
+    String::new()
 }
 
 // ============ 共享状态 ============
@@ -53,12 +70,12 @@ impl Default for TaskStatus {
             running: false, stage: "idle".into(), message: "Ready".into(),
             result: String::new(), tokens: 0,
             agents: vec![
-                AgentStatusInfo { id: "orchestrator".into(), display: "🎯 Panda PM".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "file_agent".into(), display: "🦊 Fox File Ops".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "computer_agent".into(), display: "🐴 Horse SysInfo".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "app_agent".into(), display: "🐰 Rabbit Apps".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "browser_agent".into(), display: "🐶 Dog Browser".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "search_agent".into(), display: "🐷 Pig Search".into(), status: "idle".into(), message: "Ready".into() },
+                AgentStatusInfo { id: "orchestrator".into(), display: "🎮 Cute Bear".into(), status: "idle".into(), message: "Ready".into() },
+                AgentStatusInfo { id: "file_agent".into(), display: "🦒 Giraffe".into(), status: "idle".into(), message: "Ready".into() },
+                AgentStatusInfo { id: "computer_agent".into(), display: "🦙 Llama".into(), status: "idle".into(), message: "Ready".into() },
+                AgentStatusInfo { id: "app_agent".into(), display: "🐰 Rabbit".into(), status: "idle".into(), message: "Ready".into() },
+                AgentStatusInfo { id: "browser_agent".into(), display: "🐶 Doggie".into(), status: "idle".into(), message: "Ready".into() },
+                AgentStatusInfo { id: "search_agent".into(), display: "🐷 Pig".into(), status: "idle".into(), message: "Ready".into() },
             ],
         }
     }
@@ -77,6 +94,18 @@ fn agent_for_tool(name: &str) -> &str {
         "web_fetch"|"web_search"|"open_browser" => "browser_agent",
         "run_shell" => "app_agent",
         _ => "search_agent",
+    }
+}
+
+fn agent_display(id: &str) -> &str {
+    match id {
+        "orchestrator" => "🐻 Cute Bear",
+        "file_agent" => "🦒 Giraffe",
+        "computer_agent" => "🦙 Llama",
+        "app_agent" => "🐰 Rabbit",
+        "browser_agent" => "🐶 Doggie",
+        "search_agent" => "🐷 Pig",
+        _ => "?",
     }
 }
 
@@ -246,12 +275,12 @@ pub async fn get_task_status(state: State<'_, SharedTask>) -> Result<TaskStatus,
 
 #[tauri::command] pub fn get_tools() -> Vec<String> { build_registry().list_names().iter().map(|s| s.to_string()).collect() }
 #[tauri::command] pub fn get_agents() -> Vec<AgentInfo> { vec![
-    AgentInfo { id: "orchestrator".into(), name: "Panda PM".into(), role: "Task Planner".into(), pet: "🐼".into() },
-    AgentInfo { id: "file_agent".into(), name: "Fox File Ops".into(), role: "File Scanner".into(), pet: "🦊".into() },
-    AgentInfo { id: "computer_agent".into(), name: "Horse SysInfo".into(), role: "System Monitor".into(), pet: "🐴".into() },
-    AgentInfo { id: "app_agent".into(), name: "Rabbit Apps".into(), role: "App Manager".into(), pet: "🐰".into() },
-    AgentInfo { id: "browser_agent".into(), name: "Dog Browser".into(), role: "Web Scraper".into(), pet: "🐶".into() },
-    AgentInfo { id: "search_agent".into(), name: "Pig Search".into(), role: "Search Strategist".into(), pet: "🐷".into() },
+    AgentInfo { id: "orchestrator".into(), name: "Cute Bear".into(), role: "Task Planner".into(), pet: "🐻".into() },
+    AgentInfo { id: "file_agent".into(), name: "Giraffe".into(), role: "File Scanner".into(), pet: "🦒".into() },
+    AgentInfo { id: "computer_agent".into(), name: "Llama".into(), role: "System Monitor".into(), pet: "🦙".into() },
+    AgentInfo { id: "app_agent".into(), name: "Rabbit".into(), role: "App Manager".into(), pet: "🐰".into() },
+    AgentInfo { id: "browser_agent".into(), name: "Doggie".into(), role: "Web Scraper".into(), pet: "🐶".into() },
+    AgentInfo { id: "search_agent".into(), name: "Pig".into(), role: "Search Strategist".into(), pet: "🐷".into() },
 ]}
 #[tauri::command] pub async fn confirm_action() -> Result<TaskResult, String> { Ok(TaskResult { ok: true, message: "OK".into() }) }
 
@@ -261,7 +290,15 @@ pub async fn get_task_status(state: State<'_, SharedTask>) -> Result<TaskStatus,
 // ============ 核心：手工 Agent Loop（逐步更新 agent 状态）============
 
 async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result<(String, u64), String> {
-    let client = DeepSeekClient::new(get_deepseek_key(), DEEPSEEK_MODEL);
+    let api_key = get_deepseek_key();
+    if api_key.is_empty() {
+        return Err(
+            "未设置 DEEPSEEK_API_KEY。\n\n请创建 .env 文件放在 exe 同目录下，内容：\nDEEPSEEK_API_KEY=sk-你的key\n\n或设置系统环境变量 DEEPSEEK_API_KEY。"
+            .into()
+        );
+    }
+
+    let client = DeepSeekClient::new(api_key, DEEPSEEK_MODEL);
     let tool_registry = build_registry();
 
     let system = format!(
