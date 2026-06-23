@@ -1,6 +1,7 @@
 # Build output
 /target/
 /target2/
+/target3/
 
 # Dependencies
 node_modules/
