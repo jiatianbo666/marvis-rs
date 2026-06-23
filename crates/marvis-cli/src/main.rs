@@ -22,8 +22,8 @@ use marvis_tools::{
     clipboard::{ReadClipboard, WriteClipboard},
     file::{DeleteFile, FileInfo, ListDirectory, ReadFile, WriteFile},
     process::{CpuInfo, ListProcesses, MemoryInfo, ProcessInfo},
-    system::{EnvVariable, RunCommand, SystemInfo},
-    web::{WebFetch, WebSearch},
+    system::{EnvVariable, RunCommand, RunShell, SystemInfo},
+    web::{OpenBrowser, WebFetch, WebSearch},
 };
 
 fn setup_tools() -> ToolRegistry {
@@ -45,11 +45,13 @@ fn setup_tools() -> ToolRegistry {
     // Web tools
     registry.register(WebFetch);
     registry.register(WebSearch);
+    registry.register(OpenBrowser);
 
     // System tools
     registry.register(SystemInfo);
     registry.register(EnvVariable);
     registry.register(RunCommand);
+    registry.register(RunShell);
 
     // Clipboard tools
     registry.register(ReadClipboard);

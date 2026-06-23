@@ -156,6 +156,113 @@ impl Tool for WebSearch {
     }
 }
 
+/// Open a URL in the default browser.
+pub struct OpenBrowser;
+
+#[async_trait]
+impl Tool for OpenBrowser {
+    fn name(&self) -> &str {
+        "open_browser"
+    }
+
+    fn description(&self) -> &str {
+        "Open a URL in the system default browser. Use this to search the web or visit websites. \
+         Provide either 'url' (full URL) or 'search_query' (opens Google search)."
+    }
+
+    fn input_schema(&self) -> serde_json::Value {
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "description": "The URL to open (e.g. https://www.google.com/search?q=rust)"
+                },
+                "search_query": {
+                    "type": "string",
+                    "description": "Alternative: a search query. Will open Google search."
+                }
+            },
+            "required": []
+        })
+    }
+
+    fn risk_level(&self) -> RiskLevel {
+        RiskLevel::Normal
+    }
+
+    async fn execute(&self, input: serde_json::Value) -> Result<ToolResult, MarvisError> {
+        let url = if let Some(u) = input["url"].as_str() {
+            u.to_string()
+        } else if let Some(q) = input["search_query"].as_str() {
+            format!(
+                "https://www.google.com/search?q={}",
+                q.chars()
+                    .map(|c| match c {
+                        ' ' => '+'.to_string(),
+                        _ => c.to_string(),
+                    })
+                    .collect::<String>()
+            )
+        } else {
+            return Err(MarvisError::ToolError {
+                tool: self.name().to_string(),
+                message: "Provide 'url' or 'search_query'".to_string(),
+            });
+        };
+
+        open_with_shell(&url)
+            .map(|()| ToolResult::success("open_browser", format!("Browser opened: {}", url)))
+            .map_err(|e| MarvisError::ToolError {
+                tool: self.name().to_string(),
+                message: e,
+            })
+    }
+}
+
+/// Platform-aware browser opening with fallbacks.
+pub fn open_with_shell(url: &str) -> Result<(), String> {
+    if cfg!(target_os = "windows") {
+        // Method 1: cmd /c start
+        if std::process::Command::new("cmd")
+            .args(["/c", "start", "", url])
+            .spawn()
+            .is_ok()
+        {
+            return Ok(());
+        }
+        // Method 2: explorer.exe
+        if std::process::Command::new("explorer.exe")
+            .arg(url)
+            .spawn()
+            .is_ok()
+        {
+            return Ok(());
+        }
+        // Method 3: rundll32
+        if std::process::Command::new("rundll32.exe")
+            .args(["url.dll,FileProtocolHandler", url])
+            .spawn()
+            .is_ok()
+        {
+            return Ok(());
+        }
+        Err("Cannot open browser on Windows".into())
+    } else if cfg!(target_os = "macos") {
+        std::process::Command::new("open")
+            .arg(url)
+            .spawn()
+            .map_err(|e| format!("Failed: {}", e))?;
+        Ok(())
+    } else {
+        std::process::Command::new("xdg-open")
+            .arg(url)
+            .spawn()
+            .map_err(|e| format!("Failed: {}", e))?;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -194,9 +301,32 @@ mod tests {
         assert!(result.is_err());
     }
 
+    #[tokio::test]
+    async fn test_open_browser_valid_url() {
+        let tool = OpenBrowser;
+        let result = tool
+            .execute(serde_json::json!({"url": "https://example.com"}))
+            .await
+            .unwrap();
+        assert!(!result.is_error);
+        assert!(result.content.contains("Browser opened"));
+    }
+
+    #[tokio::test]
+    async fn test_open_browser_search() {
+        let tool = OpenBrowser;
+        let result = tool
+            .execute(serde_json::json!({"search_query": "rust lang"}))
+            .await
+            .unwrap();
+        assert!(!result.is_error);
+        assert!(result.content.contains("Browser opened"));
+    }
+
     #[test]
     fn test_tool_risk_levels() {
         assert_eq!(WebFetch.risk_level(), RiskLevel::ReadOnly);
         assert_eq!(WebSearch.risk_level(), RiskLevel::ReadOnly);
+        assert_eq!(OpenBrowser.risk_level(), RiskLevel::Normal);
     }
 }

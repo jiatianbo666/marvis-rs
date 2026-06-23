@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Rust-1.96+-orange?logo=rust" alt="Rust">
   <img src="https://img.shields.io/badge/Tauri-2.x-blue?logo=tauri" alt="Tauri">
   <img src="https://img.shields.io/badge/React-19-61dafb?logo=react" alt="React">
-  <img src="https://img.shields.io/badge/tests-119-green" alt="Tests">
+  <img src="https://img.shields.io/badge/tests-123-green" alt="Tests">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
 </p>
 
@@ -37,7 +37,7 @@
 - Workspace 模块化架构（7 个 crate）
 - 所有权/借用、Trait/泛型/生命周期的合理使用
 - 异步编程（Tokio）、错误处理（anyhow + thiserror）
-- 单元测试覆盖（119 个测试）
+- 单元测试覆盖（123 个测试）
 - Tauri 桌面应用打包
 
 ## 界面预览
@@ -188,7 +188,8 @@ const DEEPSEEK_MODEL: &str = "deepseek-v4-pro";
 | 🌐 网络 | `web_fetch` | 获取网页内容 | ReadOnly |
 | | `web_search` | 搜索引擎 | ReadOnly |
 | | `open_browser` | 打开 URL/搜索 | Normal |
-| 🖥️ 终端 | `run_shell` | 执行命令* | Normal |
+| 🖥️ 终端 | `run_command` | 执行程序 | Normal |
+| | `run_shell` | 执行命令* | Normal |
 | 📋 剪贴板 | `read_clipboard` | 读取剪贴板 | ReadOnly |
 | | `write_clipboard` | 写入剪贴板 | Normal |
 
@@ -221,12 +222,12 @@ const DEEPSEEK_MODEL: &str = "deepseek-v4-pro";
 ## 测试
 
 ```bash
-# 运行全部测试（119 个）
+# 运行全部测试（123 个）
 cargo test --all -- --test-threads=1
 
 # 按 crate 测试
 cargo test -p marvis-core    # 25 测试：核心类型、错误处理、Trait
-cargo test -p marvis-tools   # 39 测试：全部 18 个工具
+cargo test -p marvis-tools   # 43 测试：全部 18 个工具
 cargo test -p marvis-agent   # 15 测试：Agent 循环、编排器、计划器
 cargo test -p marvis-ai      #  5 测试：Mock 客户端、流式响应
 cargo test -p marvis-session # 19 测试：历史、上下文、存储
@@ -315,7 +316,7 @@ rust-final/
 | 🕸️ **网页解析** | scraper 0.20 | HTML 提取 |
 | 📋 **CLI** | clap 4.x | 命令行解析 |
 | 📝 **日志** | env_logger 0.11 | 日志 |
-| ✅ **测试** | cargo test | 119 个单元测试 |
+| ✅ **测试** | cargo test | 123 个单元测试 |
 
 ## 依赖说明
 

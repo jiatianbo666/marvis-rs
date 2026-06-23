@@ -113,7 +113,11 @@ impl AiClient for DeepSeekClient {
             messages: chat_messages,
             tools: openai_tools,
             stream: Some(false),
-            tool_choice: if tools.is_empty() { None } else { Some("auto".to_string()) },
+            tool_choice: if tools.is_empty() {
+                None
+            } else {
+                Some("auto".to_string())
+            },
         };
 
         let response = self
@@ -187,7 +191,11 @@ impl AiClient for DeepSeekClient {
             messages: chat_messages,
             tools: openai_tools,
             stream: Some(true),
-            tool_choice: if tools.is_empty() { None } else { Some("auto".to_string()) },
+            tool_choice: if tools.is_empty() {
+                None
+            } else {
+                Some("auto".to_string())
+            },
         };
 
         let response = self

@@ -216,6 +216,131 @@ impl Tool for RunCommand {
     }
 }
 
+/// Execute a shell command with platform-aware handling and browser interception.
+///
+/// On Windows uses `cmd /C`, on Unix uses `sh -c`.
+/// Automatically redirects browser commands (msedge, chrome, firefox, etc.) to open_browser.
+pub struct RunShell;
+
+#[async_trait]
+impl Tool for RunShell {
+    fn name(&self) -> &str {
+        "run_shell"
+    }
+
+    fn description(&self) -> &str {
+        "Execute a shell command. On Windows uses cmd /C. \
+         Use ONLY for: echo, dir, type, mkdir, rmdir, copy, move, del. \
+         NEVER use for browsers or URLs — use open_browser instead."
+    }
+
+    fn input_schema(&self) -> serde_json::Value {
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": "The command to execute"
+                }
+            },
+            "required": ["command"]
+        })
+    }
+
+    fn risk_level(&self) -> RiskLevel {
+        RiskLevel::Normal
+    }
+
+    async fn execute(&self, input: serde_json::Value) -> Result<ToolResult, MarvisError> {
+        let cmd = input["command"]
+            .as_str()
+            .ok_or_else(|| MarvisError::ToolError {
+                tool: self.name().to_string(),
+                message: "Missing 'command' parameter".to_string(),
+            })?;
+
+        let lower = cmd.to_lowercase();
+
+        // Intercept browser commands → redirect to open_browser
+        if lower.contains("msedge")
+            || lower.contains("chrome")
+            || lower.contains("firefox")
+            || lower.contains("iexplore")
+            || lower.contains("start http")
+            || lower.contains("explorer http")
+            || lower.contains("edge")
+            || lower.contains("browser")
+        {
+            let url = if let Some(pos) = lower.find("http") {
+                cmd[pos..]
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or("https://www.google.com")
+            } else if lower.contains("google") {
+                "https://www.google.com"
+            } else {
+                let query = cmd.split_whitespace().last().unwrap_or("search");
+                return Ok(ToolResult::error(
+                    "run_shell",
+                    format!(
+                        "Browser commands should use open_browser. Try: open_browser with search_query=\"{}\"",
+                        query
+                    ),
+                ));
+            };
+
+            // Delegate to open_browser via the shared helper
+            match crate::web::open_with_shell(url) {
+                Ok(()) => {
+                    return Ok(ToolResult::success(
+                        "run_shell",
+                        format!("Browser opened: {}", url),
+                    ));
+                }
+                Err(e) => {
+                    return Ok(ToolResult::error(
+                        "run_shell",
+                        format!(
+                            "Failed to open browser: {}. Please use open_browser tool instead.",
+                            e
+                        ),
+                    ));
+                }
+            }
+        }
+
+        // Execute the command
+        let output = if cfg!(target_os = "windows") {
+            std::process::Command::new("cmd").args(["/C", cmd]).output()
+        } else {
+            std::process::Command::new("sh").args(["-c", cmd]).output()
+        };
+
+        match output {
+            Ok(o) => {
+                let stdout = String::from_utf8_lossy(&o.stdout);
+                let stderr = String::from_utf8_lossy(&o.stderr);
+                let mut r = String::new();
+                if !stdout.is_empty() {
+                    r.push_str(&stdout);
+                }
+                if !stderr.is_empty() {
+                    r.push_str(&format!("\nSTDERR: {}", stderr));
+                }
+                if r.is_empty() {
+                    r = format!("Exit code: {}", o.status.code().unwrap_or(-1));
+                }
+                if o.status.success() {
+                    Ok(ToolResult::success("run_shell", r))
+                } else {
+                    Ok(ToolResult::error("run_shell", r))
+                }
+            }
+            Err(e) => Ok(ToolResult::error("run_shell", format!("Failed: {}", e))),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -259,10 +384,15 @@ mod tests {
     #[tokio::test]
     async fn test_run_command_echo() {
         let tool = RunCommand;
+        let (cmd, args): (&str, Vec<&str>) = if cfg!(target_os = "windows") {
+            ("cmd", vec!["/C", "echo", "hello", "world"])
+        } else {
+            ("echo", vec!["hello", "world"])
+        };
         let result = tool
             .execute(serde_json::json!({
-                "command": "echo",
-                "args": ["hello", "world"]
+                "command": cmd,
+                "args": args
             }))
             .await
             .unwrap();
@@ -277,9 +407,33 @@ mod tests {
             .execute(serde_json::json!({"command": "nonexistent_command_xyz"}))
             .await;
         // May return Err or Ok(ToolResult { is_error: true })
-        match result {
-            Ok(r) => assert!(r.is_error),
-            Err(_) => {} // Also acceptable
+        if let Ok(r) = result {
+            assert!(r.is_error);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_run_shell_echo() {
+        let tool = RunShell;
+        let result = tool
+            .execute(serde_json::json!({"command": "echo hello"}))
+            .await
+            .unwrap();
+        assert!(!result.is_error);
+        assert!(result.content.contains("hello"));
+    }
+
+    #[tokio::test]
+    async fn test_run_shell_browser_interception() {
+        let tool = RunShell;
+        let result = tool
+            .execute(serde_json::json!({"command": "msedge https://example.com"}))
+            .await
+            .unwrap();
+        // Browser commands should be intercepted (redirect or error, never crash)
+        // Result may vary: success=browser opened, error=use open_browser instead
+        if result.is_error {
+            assert!(result.content.contains("open_browser"));
         }
     }
 
@@ -288,5 +442,6 @@ mod tests {
         assert_eq!(SystemInfo.risk_level(), RiskLevel::ReadOnly);
         assert_eq!(EnvVariable.risk_level(), RiskLevel::ReadOnly);
         assert_eq!(RunCommand.risk_level(), RiskLevel::Normal);
+        assert_eq!(RunShell.risk_level(), RiskLevel::Normal);
     }
 }

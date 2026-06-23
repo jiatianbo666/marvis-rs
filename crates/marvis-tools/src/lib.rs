@@ -12,3 +12,4 @@ pub mod system;
 pub mod web;
 
 pub use registry::ToolRegistry;
+pub use web::open_with_shell;

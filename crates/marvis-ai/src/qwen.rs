@@ -96,7 +96,11 @@ impl AiClient for QwenClient {
             messages: chat_messages,
             tools: openai_tools,
             stream: Some(false),
-            tool_choice: if tools.is_empty() { None } else { Some("auto".to_string()) },
+            tool_choice: if tools.is_empty() {
+                None
+            } else {
+                Some("auto".to_string())
+            },
         };
 
         let url = if self.base_url.ends_with("/chat/completions") {

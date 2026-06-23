@@ -5,3 +5,4 @@ target = "x86_64-pc-windows-gnu"
 [target.x86_64-pc-windows-gnu]
 # Optional: specify linker if needed
 # linker = "x86_64-w64-mingw32-gcc"
+

@@ -23,19 +23,54 @@ use tokio::sync::Mutex;
 const DEEPSEEK_MODEL: &str = "deepseek-v4-pro";
 
 fn get_deepseek_key() -> String {
-    // 1. Check env var
+    // 1. Check env var (PowerShell: $env:DEEPSEEK_API_KEY="sk-...")
     if let Ok(key) = std::env::var("DEEPSEEK_API_KEY") {
-        if !key.is_empty() && key != "your-deepseek-api-key" { return key; }
+        if !key.is_empty() && key != "your-deepseek-api-key" {
+            return key;
+        }
     }
-    // 2. Check .env file next to exe
+    // 2. Search .env in multiple locations
+    let mut search_dirs: Vec<std::path::PathBuf> = Vec::new();
+
+    // (a) Walk UP from exe dir (release: target/release/ → ... → workspace root)
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
-            let env_path = dir.join(".env");
-            if let Ok(content) = std::fs::read_to_string(&env_path) {
-                for line in content.lines() {
-                    if let Some(val) = line.strip_prefix("DEEPSEEK_API_KEY=") {
-                        let val = val.trim().trim_matches('"').trim_matches('\'');
-                        if !val.is_empty() { return val.to_string(); }
+            let mut p = dir.to_path_buf();
+            for _ in 0..6 {
+                search_dirs.push(p.clone());
+                if let Some(parent) = p.parent() {
+                    p = parent.to_path_buf();
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    // (b) Walk UP from cwd (covers tauri dev / cargo run scenarios)
+    if let Ok(cwd) = std::env::current_dir() {
+        let mut p = cwd;
+        for _ in 0..4 {
+            search_dirs.push(p.clone());
+            if let Some(parent) = p.parent() {
+                p = parent.to_path_buf();
+            } else {
+                break;
+            }
+        }
+    }
+
+    for dir in &search_dirs {
+        let env_path = dir.join(".env");
+        if let Ok(content) = std::fs::read_to_string(&env_path) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.is_empty() || trimmed.starts_with('#') {
+                    continue;
+                }
+                if let Some(val) = trimmed.strip_prefix("DEEPSEEK_API_KEY=") {
+                    let val = val.trim().trim_matches('"').trim_matches('\'');
+                    if !val.is_empty() && val != "your-deepseek-api-key" {
+                        return val.to_string();
                     }
                 }
             }
@@ -67,31 +102,72 @@ pub struct AgentStatusInfo {
 impl Default for TaskStatus {
     fn default() -> Self {
         Self {
-            running: false, stage: "idle".into(), message: "Ready".into(),
-            result: String::new(), tokens: 0,
+            running: false,
+            stage: "idle".into(),
+            message: "Ready".into(),
+            result: String::new(),
+            tokens: 0,
             agents: vec![
-                AgentStatusInfo { id: "orchestrator".into(), display: "🎮 Cute Bear".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "file_agent".into(), display: "🦒 Giraffe".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "computer_agent".into(), display: "🦙 Llama".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "app_agent".into(), display: "🐰 Rabbit".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "browser_agent".into(), display: "🐶 Doggie".into(), status: "idle".into(), message: "Ready".into() },
-                AgentStatusInfo { id: "search_agent".into(), display: "🐷 Pig".into(), status: "idle".into(), message: "Ready".into() },
+                AgentStatusInfo {
+                    id: "orchestrator".into(),
+                    display: "🎮 Cute Bear".into(),
+                    status: "idle".into(),
+                    message: "Ready".into(),
+                },
+                AgentStatusInfo {
+                    id: "file_agent".into(),
+                    display: "🦒 Giraffe".into(),
+                    status: "idle".into(),
+                    message: "Ready".into(),
+                },
+                AgentStatusInfo {
+                    id: "computer_agent".into(),
+                    display: "🦙 Llama".into(),
+                    status: "idle".into(),
+                    message: "Ready".into(),
+                },
+                AgentStatusInfo {
+                    id: "app_agent".into(),
+                    display: "🐰 Rabbit".into(),
+                    status: "idle".into(),
+                    message: "Ready".into(),
+                },
+                AgentStatusInfo {
+                    id: "browser_agent".into(),
+                    display: "🐶 Doggie".into(),
+                    status: "idle".into(),
+                    message: "Ready".into(),
+                },
+                AgentStatusInfo {
+                    id: "search_agent".into(),
+                    display: "🐷 Pig".into(),
+                    status: "idle".into(),
+                    message: "Ready".into(),
+                },
             ],
         }
     }
 }
 
-pub struct SharedTask { pub status: Arc<Mutex<TaskStatus>> }
+pub struct SharedTask {
+    pub status: Arc<Mutex<TaskStatus>>,
+}
 
 fn set_agent(s: &mut TaskStatus, id: &str, status: &str, msg: &str) {
-    for a in &mut s.agents { if a.id == id { a.status = status.into(); a.message = msg.into(); } }
+    for a in &mut s.agents {
+        if a.id == id {
+            a.status = status.into();
+            a.message = msg.into();
+        }
+    }
 }
 
 fn agent_for_tool(name: &str) -> &str {
     match name {
-        "read_file"|"write_file"|"list_directory"|"delete_file"|"file_info" => "file_agent",
-        "list_processes"|"process_info"|"cpu_info"|"memory_info"|"system_info"|"env_variable" => "computer_agent",
-        "web_fetch"|"web_search"|"open_browser" => "browser_agent",
+        "read_file" | "write_file" | "list_directory" | "delete_file" | "file_info" => "file_agent",
+        "list_processes" | "process_info" | "cpu_info" | "memory_info" | "system_info"
+        | "env_variable" => "computer_agent",
+        "web_fetch" | "web_search" | "open_browser" => "browser_agent",
         "run_shell" => "app_agent",
         _ => "search_agent",
     }
@@ -116,7 +192,9 @@ use async_trait::async_trait;
 struct OpenBrowserTool;
 #[async_trait]
 impl marvis_core::Tool for OpenBrowserTool {
-    fn name(&self) -> &str { "open_browser" }
+    fn name(&self) -> &str {
+        "open_browser"
+    }
     fn description(&self) -> &str {
         "Open a URL in the system default browser. Use this to search the web or visit websites."
     }
@@ -130,8 +208,13 @@ impl marvis_core::Tool for OpenBrowserTool {
             "required": []
         })
     }
-    fn risk_level(&self) -> marvis_core::RiskLevel { marvis_core::RiskLevel::Normal }
-    async fn execute(&self, input: serde_json::Value) -> Result<ToolResult, marvis_core::MarvisError> {
+    fn risk_level(&self) -> marvis_core::RiskLevel {
+        marvis_core::RiskLevel::Normal
+    }
+    async fn execute(
+        &self,
+        input: serde_json::Value,
+    ) -> Result<ToolResult, marvis_core::MarvisError> {
         let url = if let Some(u) = input["url"].as_str() {
             u.to_string()
         } else if let Some(q) = input["search_query"].as_str() {
@@ -140,25 +223,30 @@ impl marvis_core::Tool for OpenBrowserTool {
             // 从整个 input 中找任意 URL 或搜索词
             let s = input.to_string();
             if s.contains("http") {
-                s.split("http").nth(1).map(|x| format!("http{}", x.split('"').next().unwrap_or(x))).unwrap_or("https://google.com".into())
+                s.split("http")
+                    .nth(1)
+                    .map(|x| format!("http{}", x.split('"').next().unwrap_or(x)))
+                    .unwrap_or("https://google.com".into())
             } else {
                 "https://www.google.com".into()
             }
         };
 
-        open_with_shell(&url).map(|_| {
-            ToolResult::success("open_browser", format!("✅ Browser opened: {}", url))
-        }).map_err(|e| marvis_core::MarvisError::ToolError {
-            tool: "open_browser".into(),
-            message: e,
-        })
+        open_with_shell(&url)
+            .map(|_| ToolResult::success("open_browser", format!("✅ Browser opened: {}", url)))
+            .map_err(|e| marvis_core::MarvisError::ToolError {
+                tool: "open_browser".into(),
+                message: e,
+            })
     }
 }
 
 struct RunShellTool;
 #[async_trait]
 impl marvis_core::Tool for RunShellTool {
-    fn name(&self) -> &str { "run_shell" }
+    fn name(&self) -> &str {
+        "run_shell"
+    }
     fn description(&self) -> &str {
         "Execute a shell command. On Windows uses cmd /C. Use ONLY for: echo, dir, type, mkdir, rmdir, copy, move, del. NEVER use for browsers or URLs."
     }
@@ -171,18 +259,32 @@ impl marvis_core::Tool for RunShellTool {
             "required": ["command"]
         })
     }
-    fn risk_level(&self) -> marvis_core::RiskLevel { marvis_core::RiskLevel::Normal }
-    async fn execute(&self, input: serde_json::Value) -> Result<ToolResult, marvis_core::MarvisError> {
+    fn risk_level(&self) -> marvis_core::RiskLevel {
+        marvis_core::RiskLevel::Normal
+    }
+    async fn execute(
+        &self,
+        input: serde_json::Value,
+    ) -> Result<ToolResult, marvis_core::MarvisError> {
         let cmd = input["command"].as_str().unwrap_or("");
         let lower = cmd.to_lowercase();
 
         // 🔥 浏览器命令 → 自动转换成 open_with_shell，不报错
-        if lower.contains("msedge") || lower.contains("chrome") || lower.contains("firefox")
-            || lower.contains("iexplore") || lower.contains("start http") || lower.contains("explorer http")
-            || lower.contains("edge") || lower.contains("browser") {
+        if lower.contains("msedge")
+            || lower.contains("chrome")
+            || lower.contains("firefox")
+            || lower.contains("iexplore")
+            || lower.contains("start http")
+            || lower.contains("explorer http")
+            || lower.contains("edge")
+            || lower.contains("browser")
+        {
             // 从命令中提取 URL
             let url = if let Some(pos) = lower.find("http") {
-                cmd[pos..].split_whitespace().next().unwrap_or("https://www.google.com")
+                cmd[pos..]
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or("https://www.google.com")
             } else if lower.contains("taobao") {
                 "https://www.taobao.com"
             } else if lower.contains("google") {
@@ -194,10 +296,18 @@ impl marvis_core::Tool for RunShellTool {
             };
 
             match open_with_shell(url) {
-                Ok(()) => return Ok(ToolResult::success("run_shell",
-                    format!("✅ 浏览器已打开: {}", url))),
-                Err(e) => return Ok(ToolResult::error("run_shell",
-                    format!("打开浏览器失败: {}. 请尝试手动访问: {}", e, url))),
+                Ok(()) => {
+                    return Ok(ToolResult::success(
+                        "run_shell",
+                        format!("✅ 浏览器已打开: {}", url),
+                    ))
+                }
+                Err(e) => {
+                    return Ok(ToolResult::error(
+                        "run_shell",
+                        format!("打开浏览器失败: {}. 请尝试手动访问: {}", e, url),
+                    ))
+                }
             }
         }
 
@@ -212,9 +322,15 @@ impl marvis_core::Tool for RunShellTool {
                 let stdout = String::from_utf8_lossy(&o.stdout);
                 let stderr = String::from_utf8_lossy(&o.stderr);
                 let mut r = String::new();
-                if !stdout.is_empty() { r.push_str(&stdout); }
-                if !stderr.is_empty() { r.push_str(&format!("\nSTDERR: {}", stderr)); }
-                if r.is_empty() { r = format!("Exit code: {}", o.status.code().unwrap_or(-1)); }
+                if !stdout.is_empty() {
+                    r.push_str(&stdout);
+                }
+                if !stderr.is_empty() {
+                    r.push_str(&format!("\nSTDERR: {}", stderr));
+                }
+                if r.is_empty() {
+                    r = format!("Exit code: {}", o.status.code().unwrap_or(-1));
+                }
                 if o.status.success() {
                     Ok(ToolResult::success("run_shell", r))
                 } else {
@@ -228,15 +344,23 @@ impl marvis_core::Tool for RunShellTool {
 
 fn build_registry() -> ToolRegistry {
     let mut r = ToolRegistry::new();
-    r.register(ReadFile); r.register(WriteFile); r.register(ListDirectory);
-    r.register(DeleteFile); r.register(FileInfo);
-    r.register(ListProcesses); r.register(ProcessInfo);
-    r.register(CpuInfo); r.register(MemoryInfo);
-    r.register(WebFetch); r.register(WebSearch);
-    r.register(SystemInfo); r.register(EnvVariable);
-    r.register(ReadClipboard); r.register(WriteClipboard);
-    r.register(OpenBrowserTool);  // ← 专用浏览器工具
-    r.register(RunShellTool);     // ← 有保护的 shell
+    r.register(ReadFile);
+    r.register(WriteFile);
+    r.register(ListDirectory);
+    r.register(DeleteFile);
+    r.register(FileInfo);
+    r.register(ListProcesses);
+    r.register(ProcessInfo);
+    r.register(CpuInfo);
+    r.register(MemoryInfo);
+    r.register(WebFetch);
+    r.register(WebSearch);
+    r.register(SystemInfo);
+    r.register(EnvVariable);
+    r.register(ReadClipboard);
+    r.register(WriteClipboard);
+    r.register(OpenBrowserTool); // ← 专用浏览器工具
+    r.register(RunShellTool); // ← 有保护的 shell
     r
 }
 
@@ -245,8 +369,13 @@ fn build_registry() -> ToolRegistry {
 #[tauri::command]
 pub async fn run_task(state: State<'_, SharedTask>, task: String) -> Result<TaskStatus, String> {
     let mut s = state.status.lock().await;
-    if s.running { return Ok(s.clone()); }
-    s.running = true; s.stage = "thinking".into(); s.result.clear(); s.tokens = 0;
+    if s.running {
+        return Ok(s.clone());
+    }
+    s.running = true;
+    s.stage = "thinking".into();
+    s.result.clear();
+    s.tokens = 0;
     set_agent(&mut s, "orchestrator", "thinking", "Analyzing...");
     drop(s);
 
@@ -257,12 +386,24 @@ pub async fn run_task(state: State<'_, SharedTask>, task: String) -> Result<Task
         let result = run_ai_agent(&task_clone, &status_ref).await;
         let mut s = status_ref.lock().await;
         match result {
-            Ok((text, tokens)) => { s.stage = "done".into(); s.result = text; s.tokens = tokens; }
-            Err(e) => { s.stage = "error".into(); s.result = format!("❌ {}", e); }
+            Ok((text, tokens)) => {
+                s.stage = "done".into();
+                s.result = text;
+                s.tokens = tokens;
+            }
+            Err(e) => {
+                s.stage = "error".into();
+                s.result = format!("❌ {}", e);
+            }
         }
         s.running = false;
         set_agent(&mut s, "orchestrator", "idle", "Ready");
-        for a in &mut s.agents { if a.id != "orchestrator" { a.status = "idle".into(); a.message = "Ready".into(); } }
+        for a in &mut s.agents {
+            if a.id != "orchestrator" {
+                a.status = "idle".into();
+                a.message = "Ready".into();
+            }
+        }
     });
 
     Ok(state.status.lock().await.clone())
@@ -273,23 +414,82 @@ pub async fn get_task_status(state: State<'_, SharedTask>) -> Result<TaskStatus,
     Ok(state.status.lock().await.clone())
 }
 
-#[tauri::command] pub fn get_tools() -> Vec<String> { build_registry().list_names().iter().map(|s| s.to_string()).collect() }
-#[tauri::command] pub fn get_agents() -> Vec<AgentInfo> { vec![
-    AgentInfo { id: "orchestrator".into(), name: "Cute Bear".into(), role: "Task Planner".into(), pet: "🐻".into() },
-    AgentInfo { id: "file_agent".into(), name: "Giraffe".into(), role: "File Scanner".into(), pet: "🦒".into() },
-    AgentInfo { id: "computer_agent".into(), name: "Llama".into(), role: "System Monitor".into(), pet: "🦙".into() },
-    AgentInfo { id: "app_agent".into(), name: "Rabbit".into(), role: "App Manager".into(), pet: "🐰".into() },
-    AgentInfo { id: "browser_agent".into(), name: "Doggie".into(), role: "Web Scraper".into(), pet: "🐶".into() },
-    AgentInfo { id: "search_agent".into(), name: "Pig".into(), role: "Search Strategist".into(), pet: "🐷".into() },
-]}
-#[tauri::command] pub async fn confirm_action() -> Result<TaskResult, String> { Ok(TaskResult { ok: true, message: "OK".into() }) }
+#[tauri::command]
+pub fn get_tools() -> Vec<String> {
+    build_registry()
+        .list_names()
+        .iter()
+        .map(|s| s.to_string())
+        .collect()
+}
+#[tauri::command]
+pub fn get_agents() -> Vec<AgentInfo> {
+    vec![
+        AgentInfo {
+            id: "orchestrator".into(),
+            name: "Cute Bear".into(),
+            role: "Task Planner".into(),
+            pet: "🐻".into(),
+        },
+        AgentInfo {
+            id: "file_agent".into(),
+            name: "Giraffe".into(),
+            role: "File Scanner".into(),
+            pet: "🦒".into(),
+        },
+        AgentInfo {
+            id: "computer_agent".into(),
+            name: "Llama".into(),
+            role: "System Monitor".into(),
+            pet: "🦙".into(),
+        },
+        AgentInfo {
+            id: "app_agent".into(),
+            name: "Rabbit".into(),
+            role: "App Manager".into(),
+            pet: "🐰".into(),
+        },
+        AgentInfo {
+            id: "browser_agent".into(),
+            name: "Doggie".into(),
+            role: "Web Scraper".into(),
+            pet: "🐶".into(),
+        },
+        AgentInfo {
+            id: "search_agent".into(),
+            name: "Pig".into(),
+            role: "Search Strategist".into(),
+            pet: "🐷".into(),
+        },
+    ]
+}
+#[tauri::command]
+pub async fn confirm_action() -> Result<TaskResult, String> {
+    Ok(TaskResult {
+        ok: true,
+        message: "OK".into(),
+    })
+}
 
-#[derive(Debug, Serialize, Deserialize)] pub struct TaskResult { pub ok: bool, pub message: String }
-#[derive(Debug, Serialize, Deserialize)] pub struct AgentInfo { pub id: String, pub name: String, pub role: String, pub pet: String }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskResult {
+    pub ok: bool,
+    pub message: String,
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AgentInfo {
+    pub id: String,
+    pub name: String,
+    pub role: String,
+    pub pet: String,
+}
 
 // ============ 核心：手工 Agent Loop（逐步更新 agent 状态）============
 
-async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result<(String, u64), String> {
+async fn run_ai_agent(
+    task: &str,
+    status_ref: &Arc<Mutex<TaskStatus>>,
+) -> Result<(String, u64), String> {
     let api_key = get_deepseek_key();
     if api_key.is_empty() {
         return Err(
@@ -323,10 +523,7 @@ async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result
         4. Speak Chinese. Be helpful and direct."
     );
 
-    let mut messages: Vec<Message> = vec![
-        Message::system(&system),
-        Message::user(task),
-    ];
+    let mut messages: Vec<Message> = vec![Message::system(&system), Message::user(task)];
 
     let mut total_tokens: u64 = 0;
     let tool_schemas: Vec<ToolSchema> = tool_registry.schemas();
@@ -334,14 +531,21 @@ async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result
     // Orchestrator starts thinking
     {
         let mut s = status_ref.lock().await;
-        set_agent(&mut s, "orchestrator", "thinking", "Analyzing your request...");
+        set_agent(
+            &mut s,
+            "orchestrator",
+            "thinking",
+            "Analyzing your request...",
+        );
         s.stage = "thinking".into();
     }
 
     // Agent loop — max 5 iterations
     for iteration in 0..5 {
         // Call AI
-        let response = client.chat(&messages, &tool_schemas).await
+        let response = client
+            .chat(&messages, &tool_schemas)
+            .await
             .map_err(|e| format!("AI error: {}", e))?;
 
         match response {
@@ -362,8 +566,12 @@ async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result
                     // 通知：agent 开始工作
                     {
                         let mut s = status_ref.lock().await;
-                        set_agent(&mut s, agent_id, "working",
-                            &format!("Executing {}...", call.name));
+                        set_agent(
+                            &mut s,
+                            agent_id,
+                            "working",
+                            &format!("Executing {}...", call.name),
+                        );
                         s.stage = "working".into();
                     }
                     // 让前端有时间轮询到
@@ -377,8 +585,12 @@ async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result
                         let mut s = status_ref.lock().await;
                         match &result {
                             Ok(r) if !r.is_error => {
-                                set_agent(&mut s, agent_id, "done",
-                                    &format!("{} complete!", call.name));
+                                set_agent(
+                                    &mut s,
+                                    agent_id,
+                                    "done",
+                                    &format!("{} complete!", call.name),
+                                );
                                 total_tokens += 300;
                             }
                             Ok(r) => {
@@ -437,24 +649,38 @@ async fn run_ai_agent(task: &str, status_ref: &Arc<Mutex<TaskStatus>>) -> Result
 
 fn open_with_shell(url: &str) -> Result<(), String> {
     // 方法1: cmd /c start
-    if std::process::Command::new("cmd").args(["/c", "start", "", url]).spawn().is_ok() {
+    if std::process::Command::new("cmd")
+        .args(["/c", "start", "", url])
+        .spawn()
+        .is_ok()
+    {
         return Ok(());
     }
     // 方法2: explorer
-    if std::process::Command::new("explorer.exe").arg(url).spawn().is_ok() {
+    if std::process::Command::new("explorer.exe")
+        .arg(url)
+        .spawn()
+        .is_ok()
+    {
         return Ok(());
     }
     // 方法3: rundll32
-    if std::process::Command::new("rundll32.exe").args(["url.dll,FileProtocolHandler", url]).spawn().is_ok() {
+    if std::process::Command::new("rundll32.exe")
+        .args(["url.dll,FileProtocolHandler", url])
+        .spawn()
+        .is_ok()
+    {
         return Ok(());
     }
     Err("Cannot open browser".into())
 }
 
 fn urlencode(s: &str) -> String {
-    s.chars().map(|c| match c {
-        'a'..='z'|'A'..='Z'|'0'..='9'|'-'|'_'|'.'|'~' => c.to_string(),
-        ' ' => "+".into(),
-        _ => format!("%{:02X}", c as u8),
-    }).collect()
+    s.chars()
+        .map(|c| match c {
+            'a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' | '.' | '~' => c.to_string(),
+            ' ' => "+".into(),
+            _ => format!("%{:02X}", c as u8),
+        })
+        .collect()
 }
