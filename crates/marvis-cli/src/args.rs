@@ -25,7 +25,7 @@ pub struct Args {
     pub model: String,
 
     /// AI provider: deepseek, qwen, or mock
-    #[arg(short = 'P', long, default_value = "mock")]
+    #[arg(short = 'P', long, default_value = "deepseek")]
     pub provider: String,
 
     /// Permission mode: readonly, normal, dangerous

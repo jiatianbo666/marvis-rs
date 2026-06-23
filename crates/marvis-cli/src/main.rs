@@ -60,6 +60,52 @@ fn setup_tools() -> ToolRegistry {
     registry
 }
 
+/// Search for an API key in env var first, then .env files (multi-path).
+fn get_api_key(var_name: &str) -> String {
+    // 1. Check environment variable
+    if let Ok(key) = std::env::var(var_name) {
+        let key = key.trim().trim_matches('"').trim_matches('\'').to_string();
+        if !key.is_empty() && key != "your-deepseek-api-key" {
+            return key;
+        }
+    }
+    // 2. Search .env in multiple locations
+    let mut search_dirs: Vec<std::path::PathBuf> = Vec::new();
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            let mut p = dir.to_path_buf();
+            for _ in 0..6 {
+                search_dirs.push(p.clone());
+                if let Some(parent) = p.parent() { p = parent.to_path_buf(); } else { break; }
+            }
+        }
+    }
+    if let Ok(cwd) = std::env::current_dir() {
+        let mut p = cwd;
+        for _ in 0..4 {
+            search_dirs.push(p.clone());
+            if let Some(parent) = p.parent() { p = parent.to_path_buf(); } else { break; }
+        }
+    }
+    for dir in &search_dirs {
+        let env_path = dir.join(".env");
+        if let Ok(content) = std::fs::read_to_string(&env_path) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.is_empty() || trimmed.starts_with('#') { continue; }
+                let prefix = format!("{}=", var_name);
+                if let Some(val) = trimmed.strip_prefix(&prefix) {
+                    let val = val.trim().trim_matches('"').trim_matches('\'');
+                    if !val.is_empty() && val != "your-deepseek-api-key" {
+                        return val.to_string();
+                    }
+                }
+            }
+        }
+    }
+    String::new()
+}
+
 fn parse_permission_mode(mode: &str) -> PermissionMode {
     match mode.to_lowercase().as_str() {
         "readonly" | "read-only" | "ro" => PermissionMode::ReadOnly,
@@ -90,7 +136,7 @@ async fn main() -> anyhow::Result<()> {
     // Create AI client based on provider
     let ai_client: Box<dyn marvis_ai::AiClient> = match args.provider.as_str() {
         "deepseek" => {
-            let api_key = std::env::var("DEEPSEEK_API_KEY").unwrap_or_else(|_| String::new());
+            let api_key = get_api_key("DEEPSEEK_API_KEY");
             if api_key.is_empty() {
                 log::warn!("DEEPSEEK_API_KEY not set, falling back to mock");
                 Box::new(MockClient::new())
