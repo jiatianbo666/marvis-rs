@@ -1,0 +1,35 @@
+# ============================================================
+# GitHub Linguist 配置 — 控制仓库语言统计
+# ============================================================
+
+# --- 排除构建产物和第三方依赖 ---
+target/*          linguist-vendored
+target2/*         linguist-vendored
+target3/*         linguist-vendored
+node_modules/*    linguist-vendored
+marvis-app/dist/* linguist-vendored
+
+# --- 排除 reference-code（参考代码，非本项目） ---
+reference-code/*  linguist-vendored
+marvis-office-ref/* linguist-vendored
+
+# --- 锁文件标记为生成文件（不计入统计） ---
+Cargo.lock        linguist-generated
+package-lock.json linguist-generated
+
+# --- Makefile 排除（如有） ---
+Makefile          linguist-generated
+*.mk              linguist-generated
+
+# --- 文档标记 ---
+*.md              linguist-documentation
+docs/*            linguist-documentation
+
+# --- 确保语言分类正确 ---
+*.rs              linguist-language=Rust
+*.tsx             linguist-language=TypeScript
+*.ts              linguist-language=TypeScript
+*.css             linguist-language=CSS
+*.html            linguist-language=HTML
+*.json            linguist-language=JSON
+*.toml            linguist-language=TOML
