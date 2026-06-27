@@ -31,3 +31,7 @@ Thumbs.db
 
 # Reference code (not part of this project)
 /reference-code/
+
+# Local config / task tracking
+.claude/
+task.md
